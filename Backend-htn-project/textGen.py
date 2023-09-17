@@ -20,3 +20,4 @@ def generateWarning():
     )
 
     return story.generations[0].text
+

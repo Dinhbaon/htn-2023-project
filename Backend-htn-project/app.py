@@ -4,7 +4,6 @@ import pandas as pd
 import csv
 app = Flask(__name__)
 
-
 @app.route('/get_latest_et_data', methods=['GET'])
 def get_latest_et_data():
     data = []
@@ -14,6 +13,7 @@ def get_latest_et_data():
             data.append(row)
             
     return data
+
 
 app.run()
 
