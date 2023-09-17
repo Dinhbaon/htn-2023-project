@@ -14,6 +14,5 @@ def get_latest_et_data():
             
     return data
 
-
 app.run()
 

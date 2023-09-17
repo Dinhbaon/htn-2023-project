@@ -1,6 +1,4 @@
 import time
-from flask import Flask, Response, render_template
-
 
 import math
 
@@ -9,17 +7,21 @@ import adhawkapi.frontend
 
 from pygame import mixer
 
+from textGen import generateWarning
+
 notification_threshhold = 4
-app=Flask(__name__)
+
 close_counter = 0 # notifies user that there is a warning
 
 far_counter = 0 # resets close counter after 1/2 * notification_threshhold
+
 zvec_g = 0
 
 xvec_g = 0
 
 yvec_g = 0
 
+message_sent = False
 
 class FrontendData:
     ''' BLE Frontend '''
@@ -31,7 +33,7 @@ class FrontendData:
 
         # Tell the api that we wish to receive eye tracking data stream
         # with self._handle_et_data as the handler
-        # self._api.register_stream_handler(adhawkapi.PacketType.EYETRACKING_STREAM, self._handle_et_data)
+        self._api.register_stream_handler(adhawkapi.PacketType.EYETRACKING_STREAM, self._handle_et_data)
 
         # Tell the api that we wish to tap into the EVENTS stream
         # with self._handle_events as the handler
@@ -58,6 +60,7 @@ class FrontendData:
             global xvec_g
             global yvec_g
             global zvec_g
+            global message_sent
 
             xvec_g = xvec
             yvec_g = yvec
@@ -72,6 +75,10 @@ class FrontendData:
                 close_counter = 0
                 far_counter = 0
                 distance = 0
+                if message_sent == False:
+                    print("SENT!")
+                    generateWarning()
+                    message_sent = True
             elif far_counter >= notification_threshhold:
                 close_counter = 0
                 far_counter = 0
@@ -81,16 +88,13 @@ class FrontendData:
             elif zvec <= -10:
                 far_counter += 1
 
-            print(f'Close_counter={close_counter}')
+            # print(f'Close_counter={close_counter}')
             # print(f'Far_counter={far_counter}')
             # print(f'Z-Gaze={zvec:.2f}')
             # print(f'Distance={distance}')
 
             # print(f'Gaze:x={xvec:.2f},y={yvec:.2f},z={zvec:.2f},vergence={vergence:.2f}')
 
-            data.append({'Gaze':{round(xvec, 2)}, 'y':{round(yvec, 2)}, 'z':{round(zvec, 2)}, "vergeance":{round(vergence, 2)}})
-
-            yield data
         # if et_data.eye_center is not None:
         #     if et_data.eye_mask == adhawkapi.EyeMask.BINOCULAR:
         #         rxvec, ryvec, rzvec, lxvec, lyvec, lzvec = et_data.eye_center
@@ -156,75 +160,15 @@ def get_xvec():
     global xvec_g
     return xvec_g
 
-
 def main():
-
-
     ''' App entrypoint '''
     frontend = FrontendData()
-
-    frontend._api.register_stream_handler(adhawkapi.PacketType.EYETRACKING_STREAM, frontend._handle_et_data)
-
-
-    def _handle_et_data(et_data: adhawkapi.EyeTrackingStreamData):
-        ''' Handles the latest et data '''
-        if et_data.gaze is not None:
-            xvec, yvec, zvec, vergence = et_data.gaze
-
-            global close_counter
-            global far_counter
-            global notification_threshhold
-
-            if close_counter >= notification_threshhold:
-                
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                print("Warning!!!!!")
-                close_counter = 0
-                far_counter = 0
-            elif far_counter >= notification_threshhold:
-                close_counter = 0
-                far_counter = 0
-
-            if zvec >= -5:
-                close_counter += 1
-            elif zvec <= -10:
-                far_counter += 1
-
-            print(f'Close_counter={close_counter}')
-            print(f'Far_counter={far_counter}')
-            print(f'Gaze={zvec:.2f}')
-
-            print(f'Gaze={xvec:.2f},y={yvec:.2f},z={zvec:.2f},vergence={vergence:.2f}')
-
-            data.append({'Gaze':{round(xvec, 2)}, 'y':{round(yvec, 2)}, 'z':{round(zvec, 2)}, "vergeance":{round(vergence, 2)}})
-
-            yield data
-        
-    
-    # App Entry Point
-    print("Entry: main()")
 
     try:
         while True:
             time.sleep(1)
     except (KeyboardInterrupt, SystemExit):
         frontend.shutdown()
-
-    return _handle_et_data(et_data),
 
 if __name__ == '__main__':
     main()
