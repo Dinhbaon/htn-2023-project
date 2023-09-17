@@ -1,3 +1,7 @@
+* {
+  background: linear-gradient(#220C1F, #1B3237);
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -66,4 +70,16 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+.PurpleButton {
+  background-color: #220C1F !important;
+  color: #00FFF6 !important;
+  border: 2px solid #F3C556 !important; /* Add border */
+  border-color: #F3C556 !important; /* Border color */
+  width: 200px;
+  height: 80px;
+  position: absolute; /* Set the position to absolute */
+  top: 20px; /* Adjust the y-position as needed */
+  left: 475px; /* Adjust the x-position as needed */
+  font-weight: bold;
 }
