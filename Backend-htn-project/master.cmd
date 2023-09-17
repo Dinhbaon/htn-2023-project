@@ -1,1 +1,0 @@
-python app.py & populate_data.py

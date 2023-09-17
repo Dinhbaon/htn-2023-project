@@ -2,11 +2,16 @@ import time
 from flask import Flask, Response, render_template
 import pandas as pd
 import math
+from csv import writer
+from threading import Thread
 import adhawkapi
 import adhawkapi.frontend
+from pygame import mixer
+from textGen import generateWarning
 
 notification_threshhold = 4
-app=Flask(__name__)
+
+
 close_counter = 0 # notifies user that there is a warning
 
 far_counter = 0 # resets close counter after 1/2 * notification_threshhold
@@ -15,6 +20,8 @@ zvec_g = 0
 xvec_g = 0
 
 yvec_g = 0
+
+start_time = time.time()
 
 df = pd.DataFrame()
 
@@ -55,34 +62,55 @@ class FrontendData:
             global xvec_g
             global yvec_g
             global zvec_g
+            global message_sent
 
             xvec_g = xvec
             yvec_g = yvec
             zvec_g = zvec
 
+            distance = math.sqrt(zvec**2 + xvec**2)
+
             if close_counter >= notification_threshhold:
+                mixer.init()
+                sound=mixer.Sound("ping.mp3")
+                sound.play()
                 close_counter = 0
                 far_counter = 0
+                distance = 0
+                if message_sent == False:
+                    print("SENT!")
+                    generateWarning()
+                    message_sent = True
             elif far_counter >= notification_threshhold:
                 close_counter = 0
                 far_counter = 0
-
-            distance = math.sqrt(zvec**2 + xvec**2)
 
             if distance <= 5:
                 close_counter += 1
             elif zvec <= -10:
                 far_counter += 1
 
-            print(f'Close_counter={close_counter}')
-            print(f'Far_counter={far_counter}')
-            print(f'Z-Gaze={zvec:.2f}')
-            print(f'Distance={distance}')
+            # print(f'Close_counter={close_counter}')
+            # print(f'Far_counter={far_counter}')
+            # print(f'Z-Gaze={zvec:.2f}')
+            # print(f'Distance={distance}')
 
             print(f'Gaze:x={xvec:.2f},y={yvec:.2f},z={zvec:.2f},vergence={vergence:.2f}')
 
-            df = pd.DataFrame({'x':[round(xvec, 2)], 'y':[round(yvec, 2)], 'z':[round(zvec, 2)], 'vergence':[round(zvec, 2)]}) 
-            df.to_csv("data.csv", mode='a', header=False)
+            end_time = time.time()
+
+            with open("data.csv", mode = 'a', newline='') as file:
+                    # Pass this file object to csv.writer()
+                # and get a writer object
+                writer_object = writer(file)
+            
+                # Pass the list as an argument into
+                # the writerow()
+                writer_object.writerow([round(xvec, 2), round(yvec, 2), round(zvec, 2), round(zvec, 2), end_time-start_time])
+            
+                # Close the file object
+                file.close()
+            
 
             
         # if et_data.eye_center is not None:
@@ -152,11 +180,12 @@ def get_xvec():
 
 
 def main():
-    
     f = open("data.csv", "w")
     f.truncate()
     f.close()
     ''' App entrypoint '''
+
+    print("seperate thread")
     frontend = FrontendData()
     # App Entry Point
     print("Entry: main()")
@@ -166,7 +195,5 @@ def main():
             time.sleep(1)
     except (KeyboardInterrupt, SystemExit):
         frontend.shutdown()
+main()
 
-
-if __name__ == '__main__':
-    main()
